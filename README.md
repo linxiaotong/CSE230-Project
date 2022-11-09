@@ -2,6 +2,7 @@
 2022 Fall CSE230 Project repo
 
 Team members:
+
 Xiaotong Lin  xil162@ucsd.edu
 
 # Proposal
