@@ -1,2 +1,7 @@
 # CSE230-Project
-CSE230 Project repo
+2022 Fall CSE230 Project repo
+
+Team members:
+
+
+### Proposal
