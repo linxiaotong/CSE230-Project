@@ -16,7 +16,7 @@ Dingxian Wang diw021@ucsd.edu
 We are planning to build a parkour game that allows users to control the character to elude the obstacles and collect the coins on three tracks. The score of the game is calculated by summing up the points that get from collected coins and the time it spends. 
 
 ### Illustration 
-![illustration](sample2.png)
+![illustration](sample.png)
 
 ## Features
 
