@@ -4,12 +4,9 @@
 
 Team members:
 
-<<<<<<< HEAD
 
-=======
 Xiaotong Lin  xil162@ucsd.edu
 Kanlin Wang (kaw008@ucsd.edu)
->>>>>>> 333c76a7dad8d2d70c8b01d2d9fdddd546020da2
 
 # Proposal
 
