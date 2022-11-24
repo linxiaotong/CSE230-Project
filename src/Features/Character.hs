@@ -11,6 +11,30 @@ where
 
 import Prelude
 
+-- Core types
+data Game = Game
+  {
+    _Runner    :: Track  -- current track (location) of runner
+  , _Obstacles :: [Pos]  -- list of obstacles
+  , _Jumping   :: Bool   -- is runner jumping now
+  , _lastObs   :: Track  -- track of the last obstacle, for generating new one
+  , _score     :: Int    -- current score, method TODO
+  , _locked    :: Bool   -- game locked during moving/jumping
+  , _dead      :: Bool   -- game over
+  }
+
+-- Position of obstacle, track and column
+type Pos = (Track, Int)
+
+-- Which one of the three tracks(row)
+data Track
+  = Up
+  | Mid
+  | Down
+  deriving(Eq, Show)
+
+-- Core functions
+
 -------------------------------------------------------------------------------
 
 -- | Character and Motion ---------------------------------------------------
