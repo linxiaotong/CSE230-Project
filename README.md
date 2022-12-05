@@ -30,6 +30,10 @@ The obstacles (shown as red squares) are generated randomly. The obstacles eithe
 ### Collision
 There are two kinds of collisions in the game. First, if the character touches the obstacles, the game ends and the current score is returned. Second, if the character touches the coins, the score increases by a certain amount and the coin will disappear. 
 
+
+###### Reference
+https://github.com/samtay/snake
+
 ### Character (The target Box)
 The character has several motions. First, the character can use the arrow keys to switch the roads, as shown in blue arrows. Second, the character has the ability to jump up using the space key and escape the obstacles, as shown in orange arrows. The motion of the character is controlled by three keys in the keyboard: the Up/Down key controls the motion of moving to other roads, and the Space key controls the motion of jump up. 
 
