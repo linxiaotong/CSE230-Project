@@ -1,4 +1,4 @@
-module Features.Character
+module Escape
   ( -- Types
     Game,
     Pos,
