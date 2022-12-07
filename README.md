@@ -1,20 +1,21 @@
-# CSE230-Project
+# CSE230-Project Cube Escape
 
 2022 Fall CSE230 Project repo
 
 Team members:
 
 
-Xiaotong Lin  xil162@ucsd.edu
-Kanlin Wang (kaw008@ucsd.edu)
-Dingxian Wang diw021@ucsd.edu
-Yen-Ju Tseng ytseng@ucsd.edu
+Xiaotong Lin  (xil162@ucsd.edu)  
+Kanlin Wang   (kaw008@ucsd.edu)  
+Dingxian Wang (diw021@ucsd.edu)  
+Yen-Ju Tseng  (ytseng@ucsd.edu)    
 
 # Proposal
 
 ## Overview
 
 We are planning to build a parkour game that allows users to control the character to elude the obstacles and collect the coins on three tracks. The score of the game is calculated by summing up the points that get from collected coins and the time it spends. 
+This game is inspired by many classic parkour games like the Dinosaur Game, and Subway Surfers. The game has nothing to do with the Cube Escape Series by Rusty Lake. 
 
 ### Illustration 
 ![illustration](sample.png)
