@@ -119,7 +119,6 @@ handleEditEvent s e =
                                 -- import Cursor.Types
             EvKey KBS [] -> mDo $ dullMDelete . textFieldCursorRemove
             EvKey KDel [] -> mDo $ dullMDelete . textFieldCursorDelete
-            EvKey (KChar 'q') [] -> halt s
             EvKey KEnter [] -> halt s
             EvKey KEsc [] -> halt s
             _ -> continue s
