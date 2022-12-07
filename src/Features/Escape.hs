@@ -62,7 +62,7 @@ data Track
 
 -- function to step forward in time, need more time to research on Maybe library
 step :: Game -> Game
-step s = fromMaybe g $ do
+step g = fromMaybe g $ do
     guard (not (g^.dead))
     -- unlock from last 
     MaybeT . fmap Just (locked .= False)
