@@ -32,6 +32,8 @@ import Text.ParserCombinators.ReadPrec ()
 import Control.Monad.Trans.Maybe (MaybeT (MaybeT))
 import Data.Maybe (fromMaybe)
 import Control.Monad (guard)
+import Control.Applicative ((<|>))
+
 
 -- Core types
 data Game = Game
