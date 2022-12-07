@@ -7,20 +7,31 @@ module Features.Escape
     Track,
     -- Game function
     initGame,
-    step,
-    die,
+    -- step,
+    -- die,
     -- core function
     moveUp,
     moveDown,
     runnerJump,
     generateObs,
+    updateObs,
     forwardObs,
+    removeNeg,
     -- helper function
     printPos,
     test_game,
     test_pos,
     test_track,
     printGame,
+    trackCord,
+    step,
+    runner,
+    obstacles,
+    flags, 
+    jumping,
+    score,
+    locked,
+    dead
   )
 where
 
@@ -66,10 +77,15 @@ data Track
 
 makeLenses ''Game
 
+trackCord :: Track -> Int
+trackCord Up   = 7
+trackCord Mid  = 4
+trackCord Down = 1
+
 -- Core Function
 
 ----------------------------------------------------
---- STEP Forward in Time
+--- Step Forward in Time
 ----------------------------------------------------
 
 -- Function to step forward in time, need more time to research on Maybe library
@@ -84,69 +100,8 @@ step game = fromMaybe game $ do
 -- forwardObs
 -- check jumping, if not 0, then -1
 -- generated new obstacle
-
-----------------------------------------------------
---- Action of addScore, ForwardObs, and minJump
-----------------------------------------------------
-
 takeAction :: Game -> Game
 takeAction = (execState generateObs) . addScore . forwardObs . minJump
-
--- Function of adding given point of score to Game
-addScore :: Game -> Game
-addScore (Game rn obs flg jump score locked dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score + 1, _locked = locked, _dead = dead}
-
--- Function of checking if the Runner is in Jumping
--- If so, -1, otherwise, keep the same
--- If get to 0, unlocked the state
-minJump :: Game -> Game
-minJump g@(Game rn obs flg 0 score lock dead) = g
-minJump g@(Game rn obs flg 1 score lock dead) = g & jumping .~ 0 & locked .~ False -- if jump is 1, change it back to not jump state and unlock
-minJump g@(Game rn obs flg jump score lock dead) = g & jumping .~ (jump - 1)
-
-----------------------------------------------------
---- Obstacle and Random Generator
-----------------------------------------------------
-
--- Function to generate Obstacles
-generateObs :: State Game ()
-generateObs = do
-  -- take one out
-  (f :| fs) <- use flags
-  obs <- use obstacles
-  flags .= fs
-  case f of
-    1 -> obstacles .= obs ++ [(Down, 15)] -- check if Down track generate obstacle or not
-    2 -> obstacles .= obs ++ [(Mid, 15)] -- check if Mid track generate obstacle or not
-    3 -> obstacles .= obs ++ [(Up, 15)] -- check if Up track generate obstacle or not
-    otherwise -> obstacles .= obs
-
--- Function to change the Pos of the obstalce by moving forward one position
-forwardObs :: Game -> Game
-forwardObs (Game rn obs flg jump score locked dead) = do
-  --- forward every obstacles by 1
-  let new_obs = map minusOne obs
-  let clean_obs = removeNeg new_obs
-  Game {_Runner = rn, _Obstacles = clean_obs, _Flags = flg, _Jumping = jump, _score = score, _locked = locked, _dead = dead}
-  where
-    minusOne (track, pos) = (track, pos - 1)
-
--- Function to add the new obstacles to Game
-updateObs :: [Pos] -> Game -> Game
-updateObs posList (Game rn obs flg jump score locked dead) = do
-  Game {_Runner = rn, _Obstacles = obs ++ posList, _Flags = flg, _Jumping = jump, _score = score, _locked = locked, _dead = dead}
-
--- Function to remove the obstacles that is out of the board, which means the pos is negative
-removeNeg :: [(Track, Int)] -> [(Track, Int)]
-removeNeg [] = []
-removeNeg (x : xs) = do
-  if snd x < 0
-    then xs
-    else x : removeNeg xs
-
-----------------------------------------------------
---- Check if Game is Over
-----------------------------------------------------
 
 -- Possibly dead if runner track is collide with any of the obstacles, need more investigation too
 -- execState die game
@@ -176,6 +131,14 @@ nextObs :: Game -> Pos
 nextObs (Game rn [] flg jump score locked dead) = (Mid, -1)
 nextObs (Game rn (x : xs) flg jump score locked dead) = x
 
+-- Function of checking if the Runner is in Jumping
+-- If so, -1, otherwise, keep the same
+-- If get to 0, unlocked the state
+minJump :: Game -> Game
+minJump g@(Game rn obs flg 0 score lock dead) = g
+minJump g@(Game rn obs flg 1 score lock dead) = g & jumping .~ 0 & locked .~ False -- if jump is 1, change it back to not jump state and unlock
+minJump g@(Game rn obs flg jump score lock dead) = g & jumping .~ (jump - 1)
+
 ----------------------------------------------------
 --- Runner and Motion
 ----------------------------------------------------
@@ -204,8 +167,52 @@ runnerJump (Game rn obs flg jump score True dead) = Game {_Runner = rn, _Obstacl
 runnerJump (Game rn obs flg jump score False dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = 2, _score = score, _locked = True, _dead = dead}
 
 ----------------------------------------------------
---- INITIALIZATION of the GAME
+--- Obstacle and Random Generator
 ----------------------------------------------------
+
+-- Function to generate Obstacles
+generateObs :: State Game ()
+generateObs = do
+  -- take one out
+  (f :| fs) <- use flags
+  obs <- use obstacles
+  flags .= fs
+  case f of
+    1 -> obstacles .= obs ++ [(Down, 15)] -- check if Down track generate obstacle or not
+    2 -> obstacles .= obs ++ [(Mid, 15)] -- check if Mid track generate obstacle or not
+    3 -> obstacles .= obs ++ [(Up, 15)] -- check if Up track generate obstacle or not
+    otherwise -> obstacles .= obs
+
+-- Function to add the new obstacles to Game
+updateObs :: [Pos] -> Game -> Game
+updateObs posList (Game rn obs flg jump score locked dead) = do
+  Game {_Runner = rn, _Obstacles = obs ++ posList, _Flags = flg, _Jumping = jump, _score = score, _locked = locked, _dead = dead}
+
+-- Function to change the Pos of the obstalce by moving forward one position
+forwardObs :: Game -> Game
+forwardObs (Game rn obs flg jump score locked dead) = do
+  --- forward every obstacles by 1
+  let new_obs = map minusOne obs
+  let clean_obs = removeNeg new_obs
+  Game {_Runner = rn, _Obstacles = clean_obs, _Flags = flg, _Jumping = jump, _score = score, _locked = locked, _dead = dead}
+  where
+    minusOne (track, pos) = (track, pos - 1)
+
+-- Function to remove the obstacles that is out of the board, which means the pos is negative
+removeNeg :: [(Track, Int)] -> [(Track, Int)]
+removeNeg [] = []
+removeNeg (x : xs) = do
+  if snd x < 0
+    then xs
+    else x : removeNeg xs
+
+----------------------------------------------------
+--- Score
+----------------------------------------------------
+
+-- Function of adding given point of score to Game
+addScore :: Game -> Game
+addScore (Game rn obs flg jump score locked dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score + 1, _locked = locked, _dead = dead}
 
 -- | Initialize a paused game with random food location
 initGame :: IO Game
@@ -229,9 +236,7 @@ initGame = do
 fromList :: [a] -> Stream a
 fromList = foldr (:|) (error "Streams must be infinite")
 
-----------------------------------------------------
---- Helper Function for MANUALLY TESTING
-----------------------------------------------------
+-- test objects
 
 test_game :: Game
 test_game =
