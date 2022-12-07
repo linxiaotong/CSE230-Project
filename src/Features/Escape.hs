@@ -34,7 +34,7 @@ import Control.Monad.Trans.Maybe (MaybeT (MaybeT))
 import Control.Monad.Trans.State
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
-import Lens.Micro ((^.))
+-- import Lens.Micro ((^.))
 import System.Random
 import Test.QuickCheck
 import Text.ParserCombinators.ReadPrec ()
@@ -45,7 +45,7 @@ data Game = Game
   { _Runner :: Track, -- current track (location) of runner
     _Obstacles :: [Pos], -- list of obstacles
     _Flags :: Stream Int, --- list of 0/1 as flag to know if the obstacle need to be generate
-    _Jumping :: Bool, -- is runner jumping now
+    _Jumping :: Int, -- is runner jumping now
     _score :: Int, -- current score, method TODO
     _locked :: Bool, -- game locked during moving/jumping
     _dead :: Bool -- game over
@@ -73,20 +73,20 @@ makeLenses ''Game
 ----------------------------------------------------
 
 -- function to step forward in time, need more time to research on Maybe library
-step :: Game -> Game
-step g = fromMaybe g $ do
-  guard (not (g ^. dead))
-  -- unlock from last
-  MaybeT . fmap Just (locked .= False)
-  --
-  die <|> MaybeT (Just <$> modify moveUp)
-    <|> MaybeT (Just <$> modify moveDown)
-    <|> MaybeT (Just <$> modify runnerJump)
+-- step :: Game -> Game
+-- step g = fromMaybe g $ do
+--   guard (not (g ^. dead))
+--   -- unlock from last
+--   MaybeT . fmap Just (locked .= False)
+--   --
+--   die <|> MaybeT (Just <$> modify moveUp)
+--     <|> MaybeT (Just <$> modify moveDown)
+--     <|> MaybeT (Just <$> modify runnerJump)
 
 -- Possibly dead if runner track is collide with any of the obstacles, need more investigation too
 die :: MaybeT (State Game) ()
 die = do
-  error "fill this in" --collide with any of the obstacles
+  error "fill this in" -- collide with any of the obstacles
   MaybeT . fmap Just $ dead .= True
 
 ----------------------------------------------------
@@ -109,12 +109,12 @@ moveDown (Game rn obs flg jump score False dead)
   | rn == Mid = Game {_Runner = Down, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = False, _dead = dead}
   | rn == Up = Game {_Runner = Mid, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = False, _dead = dead}
 
--- Function to change the status of the Runner to Jump (Change True to False, change False to True)
+-- Function to change the status of the Runner to Jump (3)
 -- Jumping means locked the runner from moving to other track
+-- If locked, then nothing is changed
 runnerJump :: Game -> Game
-runnerJump (Game rn obs flg jump score locked dead)
-  | jump == True = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = False, _score = score, _locked = False, _dead = dead}
-  | jump == False = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = True, _score = score, _locked = True, _dead = dead}
+runnerJump (Game rn obs flg jump score True dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = True, _dead = dead}
+runnerJump (Game rn obs flg jump score False dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = 3, _score = score, _locked = True, _dead = dead}
 
 ----------------------------------------------------
 --- Obstacle and Random Generator
@@ -176,7 +176,7 @@ initGame = do
           { _Runner = Mid, -- current track (location) of runner
             _Obstacles = [], -- list of obstacles
             _Flags = fs,
-            _Jumping = False, -- is runner jumping now
+            _Jumping = 0, -- is runner jumping now
             _score = 0, -- current score, method TODO
             _locked = False, -- game locked during moving/jumping
             _dead = False -- game over
@@ -194,7 +194,7 @@ test_game =
     { _Runner = Mid,
       _Obstacles = [],
       _Flags = fromList [],
-      _Jumping = False,
+      _Jumping = 0,
       _score = 0,
       _locked = False,
       _dead = False
