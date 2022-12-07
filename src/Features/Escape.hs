@@ -26,6 +26,7 @@ module Features.Escape
   )
 where
 
+import Control.Applicative ((<|>))
 import Control.Lens hiding ((:<), (:>), (<|), (|>))
 import Control.Monad (guard)
 -- import Control.Monad.Random
@@ -33,12 +34,11 @@ import Control.Monad.Trans.Maybe (MaybeT (MaybeT))
 import Control.Monad.Trans.State
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
+import Lens.Micro ((^.))
 import System.Random
 import Test.QuickCheck
 import Text.ParserCombinators.ReadPrec ()
 import Prelude
-
-
 
 -- Core types
 data Game = Game
@@ -75,32 +75,19 @@ makeLenses ''Game
 -- function to step forward in time, need more time to research on Maybe library
 step :: Game -> Game
 step g = fromMaybe g $ do
-    guard (not (g^.dead))
-    -- unlock from last 
-    MaybeT . fmap Just (locked .= False)
-    --
-    die <|> MaybeT (Just <$> modify moveUp)
-        <|> MaybeT (Just <$> modify moveDown)
-        <|> MaybeT (Just <$> modify runnerJump)
-
-
-
-
--- step :: Game -> Game
--- step g = fromMaybe g $ do
---   guard (not (g ^. dead))
---   -- unlock from last
---   MaybeT . fmap Just (locked .= False)
---   --
---   die <|> MaybeT (Just <$> modify moveUp)
---     <|> MaybeT (Just <$> modify moveDown)
---     <|> MaybeT (Just <$> modify runnerJump)
+  guard (not (g ^. dead))
+  -- unlock from last
+  MaybeT . fmap Just (locked .= False)
+  --
+  die <|> MaybeT (Just <$> modify moveUp)
+    <|> MaybeT (Just <$> modify moveDown)
+    <|> MaybeT (Just <$> modify runnerJump)
 
 -- Possibly dead if runner track is collide with any of the obstacles, need more investigation too
--- die :: MaybeT (State Game) ()
--- die = do
---   error "fill this in" --collide with any of the obstacles
---   MaybeT . fmap Just $ dead .= True
+die :: MaybeT (State Game) ()
+die = do
+  error "fill this in" --collide with any of the obstacles
+  MaybeT . fmap Just $ dead .= True
 
 ----------------------------------------------------
 --- Runner and Motion
@@ -139,7 +126,12 @@ generateObs = do
   -- take one out
   (f :| fs) <- use flags
   obs <- use obstacles
-  obstacles .= obs ++ [(Down, 15)]
+  flags .= fs
+  case f of
+    1 -> obstacles .= obs ++ [(Down, 15)] -- check if Down track generate obstacle or not
+    2 -> obstacles .= obs ++ [(Mid, 15)] -- check if Mid track generate obstacle or not
+    3 -> obstacles .= obs ++ [(Up, 15)] -- check if Up track generate obstacle or not
+    otherwise -> obstacles .= obs
 
 -- Function to add the new obstacles to Game (including Obstacles and LastObs)
 updateObs :: [Pos] -> Game -> Game
@@ -176,7 +168,7 @@ addScore point (Game rn obs flg jump score locked dead) = Game {_Runner = rn, _O
 initGame :: IO Game
 initGame = do
   -- error "fill this in"
-  let a = (0, 1) :: (Int, Int)
+  let a = (1, 4) :: (Int, Int)
   -- generated random inifite list here
   (f :| fs) <- fromList . randomRs a <$> newStdGen
   let g =
