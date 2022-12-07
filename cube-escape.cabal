@@ -54,7 +54,7 @@ test-suite test
                     path,
                     path-io,
                     pretty-show,
-                    text
+                    text,
                     filepath,
                     directory,
                     QuickCheck,
