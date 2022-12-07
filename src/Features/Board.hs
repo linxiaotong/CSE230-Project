@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module UI where
+module Board where
 
 import Control.Monad (forever, void)
 import Control.Monad.IO.Class (liftIO)
@@ -54,16 +54,28 @@ app = App { appDraw = drawUI
           , appAttrMap = const theMap
           }
 
-main :: IO ()
-main = do
+playGame :: IO Game
+playGame = do
   chan <- newBChan 10
   forkIO $ forever $ do
     writeBChan chan Tick
     threadDelay 100000 -- decides how fast your game moves
-  g <- initGame
+  g <- initGame 0
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
-  void $ customMain initialVty builder (Just chan) app g
+  customMain initialVty builder (Just chan) app g
+
+
+-- main :: IO ()
+-- main = do
+--   chan <- newBChan 10
+--   forkIO $ forever $ do
+--     writeBChan chan Tick
+--     threadDelay 100000 -- decides how fast your game moves
+--   g <- initGame
+--   let builder = V.mkVty V.defaultConfig
+--   initialVty <- builder
+--   void $ customMain initialVty builder (Just chan) app g
 
 -- Handling events
 
@@ -71,8 +83,11 @@ handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick)                       = continue $ step g
 handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue $ moveUp g
 handleEvent g (VtyEvent (V.EvKey V.KDown []))       = continue $ moveDown g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'w') [])) = continue $ moveUp g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 's') [])) = continue $ moveDown g
 handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') [])) = continue $ runnerJump g
 handleEvent g (VtyEvent (V.EvKey V.KEsc []))        = halt g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
 handleEvent g _                                     = continue g
 
 -- Drawing
