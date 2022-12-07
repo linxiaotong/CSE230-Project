@@ -1,3 +1,13 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings   #-}
+
+import Test.Tasty
+import Common
+import Prelude hiding (maximum)
+import Features.Board
+import Features.Escape
+import Features.EnterName
+
 module Main where 
 
 import System.Exit
