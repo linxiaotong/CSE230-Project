@@ -8,12 +8,12 @@ module Features.Escape
     -- Game function
     initGame,
     -- step,
-    -- dead,
+    -- die,
     -- core function
     moveUp,
     moveDown,
     runnerJump,
-    -- generateObs,
+    generateObs,
     updateObs,
     forwardObs,
     removeNeg,
@@ -30,6 +30,8 @@ import Control.Applicative ((<|>))
 import Control.Lens hiding ((:<), (:>), (<|), (|>))
 import Control.Monad (guard)
 -- import Control.Monad.Random
+
+import Control.Monad.Extra (orM)
 import Control.Monad.Trans.Maybe (MaybeT (MaybeT))
 import Control.Monad.Trans.State
 import qualified Data.Map as Map
@@ -72,22 +74,56 @@ makeLenses ''Game
 --- Step Forward in Time
 ----------------------------------------------------
 
--- function to step forward in time, need more time to research on Maybe library
--- step :: Game -> Game
--- step g = fromMaybe g $ do
---   guard (not (g ^. dead))
---   -- unlock from last
---   MaybeT . fmap Just (locked .= False)
---   --
---   die <|> MaybeT (Just <$> modify moveUp)
---     <|> MaybeT (Just <$> modify moveDown)
---     <|> MaybeT (Just <$> modify runnerJump)
+-- Function to step forward in time, need more time to research on Maybe library
+step :: Game -> Game
+step game = fromMaybe game $ do
+  -- check die or not
+  guard $ not (game ^. dead)
+  return $ fromMaybe (takeAction game) (die game)
+
+-- Function of taking action in steps
+-- score + 1
+-- forwardObs
+-- check jumping, if not 0, then -1
+-- generated new obstacle
+takeAction :: Game -> Game
+takeAction = (execState generateObs) . addScore . forwardObs . minJump
 
 -- Possibly dead if runner track is collide with any of the obstacles, need more investigation too
-die :: MaybeT (State Game) ()
-die = do
-  error "fill this in" -- collide with any of the obstacles
-  MaybeT . fmap Just $ dead .= True
+-- execState die game
+die :: Game -> Maybe Game
+die game = do
+  -- collide with any of the obstacles
+  guard $ checkDie game -- if checkDie succeed, then dead = True
+  return $ game & dead .~ True
+
+-- check if the Game will die
+checkDie :: Game -> Bool
+checkDie g@(Game rn obs flg jump score locked dead) =
+  -- if the runner is not jumping / locked
+  if jump > 0
+    then False
+    else do
+      -- not jump, check closest obstacles
+      let ob = nextObs g
+      case ob of
+        (rn, 0) -> True
+        (_, _) -> False
+
+-- if not jumping check track of obstacle in index 0 is the same as runner or not
+
+-- Function to take the obstacle in index 0 (first one in list)
+nextObs :: Game -> Pos
+nextObs (Game rn [] flg jump score locked dead) = (Mid, -1)
+nextObs (Game rn (x : xs) flg jump score locked dead) = x
+
+-- Function of checking if the Runner is in Jumping
+-- If so, -1, otherwise, keep the same
+-- If get to 0, unlocked the state
+minJump :: Game -> Game
+minJump g@(Game rn obs flg 0 score lock dead) = g
+minJump g@(Game rn obs flg 1 score lock dead) = g & jumping .~ 0 & locked .~ False -- if jump is 1, change it back to not jump state and unlock
+minJump g@(Game rn obs flg jump score lock dead) = g & jumping .~ (jump - 1)
 
 ----------------------------------------------------
 --- Runner and Motion
@@ -114,14 +150,14 @@ moveDown (Game rn obs flg jump score False dead)
 -- If locked, then nothing is changed
 runnerJump :: Game -> Game
 runnerJump (Game rn obs flg jump score True dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = True, _dead = dead}
-runnerJump (Game rn obs flg jump score False dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = 3, _score = score, _locked = True, _dead = dead}
+runnerJump (Game rn obs flg jump score False dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = 2, _score = score, _locked = True, _dead = dead}
 
 ----------------------------------------------------
 --- Obstacle and Random Generator
 ----------------------------------------------------
 
 -- Function to generate Obstacles
--- generateObs :: State Game ()
+generateObs :: State Game ()
 generateObs = do
   -- take one out
   (f :| fs) <- use flags
@@ -133,7 +169,7 @@ generateObs = do
     3 -> obstacles .= obs ++ [(Up, 15)] -- check if Up track generate obstacle or not
     otherwise -> obstacles .= obs
 
--- Function to add the new obstacles to Game (including Obstacles and LastObs)
+-- Function to add the new obstacles to Game
 updateObs :: [Pos] -> Game -> Game
 updateObs posList (Game rn obs flg jump score locked dead) = do
   Game {_Runner = rn, _Obstacles = obs ++ posList, _Flags = flg, _Jumping = jump, _score = score, _locked = locked, _dead = dead}
@@ -161,8 +197,8 @@ removeNeg (x : xs) = do
 ----------------------------------------------------
 
 -- Function of adding given point of score to Game
-addScore :: Int -> Game -> Game
-addScore point (Game rn obs flg jump score locked dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score + point, _locked = locked, _dead = dead}
+addScore :: Game -> Game
+addScore (Game rn obs flg jump score locked dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score + 1, _locked = locked, _dead = dead}
 
 -- | Initialize a paused game with random food location
 initGame :: IO Game
@@ -170,7 +206,7 @@ initGame = do
   -- error "fill this in"
   let a = (1, 4) :: (Int, Int)
   -- generated random inifite list here
-  (f :| fs) <- fromList . randomRs a <$> newStdGen
+  fs <- fromList . randomRs a <$> newStdGen
   let g =
         Game
           { _Runner = Mid, -- current track (location) of runner
@@ -193,7 +229,7 @@ test_game =
   Game
     { _Runner = Mid,
       _Obstacles = [],
-      _Flags = fromList [],
+      _Flags = fromList [1, 2, 1, 3, 1, 4],
       _Jumping = 0,
       _score = 0,
       _locked = False,
