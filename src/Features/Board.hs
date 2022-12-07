@@ -42,7 +42,7 @@ data Tick = Tick
 -- if we call this "Name" now.
 type Name = ()
 
-data Cell = Cube | Food | Empty
+data Cell = Cube | Obs | Ground | Empty
 
 -- App definition
 
@@ -69,16 +69,9 @@ main = do
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick)                       = continue $ step g
-handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue $ turn North g
-handleEvent g (VtyEvent (V.EvKey V.KDown []))       = continue $ turn South g
-handleEvent g (VtyEvent (V.EvKey V.KRight []))      = continue $ turn East g
-handleEvent g (VtyEvent (V.EvKey V.KLeft []))       = continue $ turn West g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'k') [])) = continue $ turn North g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'j') [])) = continue $ turn South g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'l') [])) = continue $ turn East g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'h') [])) = continue $ turn West g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'r') [])) = liftIO (initGame) >>= continue
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
+handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue $ moveUp g
+handleEvent g (VtyEvent (V.EvKey V.KDown []))       = continue $ moveDown g
+handleEvent g (VtyEvent (V.EvKey (V.KChar ' ') [])) = continue $ runnerJump g
 handleEvent g (VtyEvent (V.EvKey V.KEsc []))        = halt g
 handleEvent g _                                     = continue g
 
@@ -109,36 +102,50 @@ drawGameOver dead =
 
 drawGrid :: Game -> Widget Name
 drawGrid g = withBorderStyle BS.unicodeBold
-  $ B.borderWithLabel (str "Snake")
+  $ B.borderWithLabel (str "Cube Escape")
   $ vBox rows
   where
-    rows         = [hBox $ cellsInRow r | r <- [height-1,height-2..0]]
-    cellsInRow y = [drawCoord (V2 x y) | x <- [0..width-1]]
+    rows         = [hBox $ cellsInRow r | r <- [8..0]]
+    cellsInRow y = [drawCoord (V2 x y) | x <- [0..15]]
     drawCoord    = drawCell . cellAt
     cellAt c
-      | c `elem` g ^. snake = Snake
-      | c == g ^. food      = Food
-      | otherwise           = Empty
+      | c `elem` (obsCoord $ g ^. Obstacles)  = Obs
+      | c == (V2 0 (trackCord $ g ^. runner)) = Cube
+      | c `elem` grounds                      = Ground
+      | otherwise                             = Empty
+
+grounds = [V2 x y | x <- [0,3,6], y <- [0..15]]
+
+trackCord :: Track -> Int
+trackCord Up   = 7
+trackCord Mid  = 4
+trackCord Down = 1
+
+obsCoord :: [Pos] -> [V2 Int]
+obsCoord l = [V2 x y | p <- l, let x = snd p, let y = trackCord (fst p)]
 
 drawCell :: Cell -> Widget Name
-drawCell Snake = withAttr snakeAttr cw
-drawCell Food  = withAttr foodAttr cw
-drawCell Empty = withAttr emptyAttr cw
+drawCell Cube   = withAttr cubeAttr  cw
+drawCell Obs    = withAttr obsAttr   cw
+drawCell Ground = withAttr gdAttr    cw
+drawCell Empty  = withAttr emptyAttr cw
 
 cw :: Widget Name
 cw = str "  "
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-  [ (snakeAttr, V.blue `on` V.blue)
-  , (foodAttr, V.red `on` V.red)
+  [ (cubeAttr, V.yellow `on` V.yellow)
+  , (obsAttr, V.red `on` V.red)
+  , (gdAttr, V.white `on` V.white)
   , (gameOverAttr, fg V.red `V.withStyle` V.bold)
   ]
 
 gameOverAttr :: AttrName
 gameOverAttr = "gameOver"
 
-snakeAttr, foodAttr, emptyAttr :: AttrName
-snakeAttr = "snakeAttr"
-foodAttr = "foodAttr"
+cubeAttr, obsAttr, gdAttr, emptyAttr :: AttrName
+cubeAttr = "cubeAttr"
+obsAttr = "obsAttr"
+gdAttr = "gdAttr"
 emptyAttr = "emptyAttr"
