@@ -1,17 +1,18 @@
-module Escape
+module Features.Escape
   ( -- Types
     Game,
     Pos,
     Track,
     -- Game function
     initGame,
-    step,
-    dead,
+    -- step,
+    -- dead,
     -- core function
     moveUp,
     moveDown,
     runnerJump,
     -- generateObs,
+    trackObs,
     updateObs,
     forwardObs,
     removeNeg,
@@ -40,7 +41,6 @@ data Game = Game
   { _Runner :: Track, -- current track (location) of runner
     _Obstacles :: [Pos], -- list of obstacles
     _Jumping :: Bool, -- is runner jumping now
-    _lastObs :: Track, -- track of the last obstacle, for generating new one
     _score :: Int, -- current score, method TODO
     _locked :: Bool, -- game locked during moving/jumping
     _dead :: Bool -- game over
@@ -64,7 +64,7 @@ data Track
 
 -- function to step forward in time, need more time to research on Maybe library
 step :: Game -> Game
-step s = fromMaybe g $ do
+step g = fromMaybe g $ do
   guard (not (g ^. dead))
   -- unlock from last
   MaybeT . fmap Just (locked .= False)
@@ -85,62 +85,63 @@ die = do
 
 -- Function to control the Runner to move up one Track, if already in Up, do nothing
 moveUp :: Game -> Game
-moveUp (Game rn obs jump last score True dead) = Game {_Runner = rn, _Obstacles = obs, _Jumping = jump, _lastObs = last, _score = score, _locked = True, _dead = dead}
-moveUp (Game rn obs jump last score False dead)
-  | rn == Down = Game {_Runner = Mid, _Obstacles = obs, _Jumping = jump, _lastObs = last, _score = score, _locked = False, _dead = dead}
-  | rn == Mid = Game {_Runner = Up, _Obstacles = obs, _Jumping = jump, _lastObs = last, _score = score, _locked = False, _dead = dead}
-  | rn == Up = Game {_Runner = Up, _Obstacles = obs, _Jumping = jump, _lastObs = last, _score = score, _locked = False, _dead = dead}
+moveUp (Game rn obs jump score True dead) = Game {_Runner = rn, _Obstacles = obs, _Jumping = jump, _score = score, _locked = True, _dead = dead}
+moveUp (Game rn obs jump score False dead)
+  | rn == Down = Game {_Runner = Mid, _Obstacles = obs, _Jumping = jump, _score = score, _locked = False, _dead = dead}
+  | rn == Mid = Game {_Runner = Up, _Obstacles = obs, _Jumping = jump, _score = score, _locked = False, _dead = dead}
+  | rn == Up = Game {_Runner = Up, _Obstacles = obs, _Jumping = jump, _score = score, _locked = False, _dead = dead}
 
 -- Function to control the Runner to move down one Track, if already in Down, do nothing
 moveDown :: Game -> Game
-moveDown (Game rn obs jump last score True dead) = Game {_Runner = rn, _Obstacles = obs, _Jumping = jump, _lastObs = last, _score = score, _locked = True, _dead = dead}
-moveDown (Game rn obs jump last score False dead)
-  | rn == Down = Game {_Runner = Down, _Obstacles = obs, _Jumping = jump, _lastObs = last, _score = score, _locked = False, _dead = dead}
-  | rn == Mid = Game {_Runner = Down, _Obstacles = obs, _Jumping = jump, _lastObs = last, _score = score, _locked = False, _dead = dead}
-  | rn == Up = Game {_Runner = Mid, _Obstacles = obs, _Jumping = jump, _lastObs = last, _score = score, _locked = False, _dead = dead}
+moveDown (Game rn obs jump score True dead) = Game {_Runner = rn, _Obstacles = obs, _Jumping = jump, _score = score, _locked = True, _dead = dead}
+moveDown (Game rn obs jump score False dead)
+  | rn == Down = Game {_Runner = Down, _Obstacles = obs, _Jumping = jump, _score = score, _locked = False, _dead = dead}
+  | rn == Mid = Game {_Runner = Down, _Obstacles = obs, _Jumping = jump, _score = score, _locked = False, _dead = dead}
+  | rn == Up = Game {_Runner = Mid, _Obstacles = obs, _Jumping = jump, _score = score, _locked = False, _dead = dead}
 
 -- Function to change the status of the Runner to Jump (Change True to False, change False to True)
 -- Jumping means locked the runner from moving to other track
 runnerJump :: Game -> Game
-runnerJump (Game rn obs jump last score locked dead)
-  | jump == True = Game {_Runner = rn, _Obstacles = obs, _Jumping = False, _lastObs = last, _score = score, _locked = False, _dead = dead}
-  | jump == False = Game {_Runner = rn, _Obstacles = obs, _Jumping = True, _lastObs = last, _score = score, _locked = True, _dead = dead}
+runnerJump (Game rn obs jump score locked dead)
+  | jump == True = Game {_Runner = rn, _Obstacles = obs, _Jumping = False, _score = score, _locked = False, _dead = dead}
+  | jump == False = Game {_Runner = rn, _Obstacles = obs, _Jumping = True, _score = score, _locked = True, _dead = dead}
 
 ----------------------------------------------------
 --- Obstacle and Random Generator
 ----------------------------------------------------
 
--- Function to generate a random number in given range
-genInt :: Int -> Int -> IO Int
-genInt x y = getStdRandom (randomR (x, y))
+-- Function to generate a 0 / 1 as flag to decided create Obs or not
+genFlag :: IO Int
+genFlag = getStdRandom $ randomR (0, 1 :: Int)
 
--- Function to generate a Pos with random track and position 15(last cell of the board)
--- generateObs :: IO ()
+-- Function to generate a list of Obs with given 3 track and position 15(last cell of the board)
+-- For each track if the random number is 1, then it generate a pos, otherwise not generate a list
+generateObs :: IO ()
 generateObs = do
-  x <- elements [Up, Mid, Down]
-  return (x, 15)
+  trackObs Down
+  trackObs Mid
+  trackObs Up
 
-printIO :: IO ()
-printIO = do
-  x <- genInt 0 10
-  t <- show x
-  if t == "0"
-    then print "t is 0"
-    else print "t is not 0"
+-- Function of decided whether a track is generated a obstacles
+trackObs :: Track -> IO ()
+trackObs track = do
+  flag <- genFlag
+  if flag == 1
+    then print (track, 15)
+    else print (track, -1)
 
 -- Function to add the new obstacles to Game (including Obstacles and LastObs)
-updateObs :: Pos -> Game -> Game
-updateObs pos (Game rn obs jump last score locked dead) = do
-  let lastTrack = fst pos
-  Game {_Runner = rn, _Obstacles = obs ++ [pos], _Jumping = jump, _lastObs = lastTrack, _score = score, _locked = locked, _dead = dead}
+updateObs :: [Pos] -> Game -> Game
+updateObs posList (Game rn obs jump score locked dead) = do
+  Game {_Runner = rn, _Obstacles = obs ++ posList, _Jumping = jump, _score = score, _locked = locked, _dead = dead}
 
--- Function to change the Pos of the obstalces by moving forward one position
+-- Function to change the Pos of the obstalce by moving forward one position
 forwardObs :: Game -> Game
-forwardObs (Game rn obs jump last score locked dead) = do
+forwardObs (Game rn obs jump score locked dead) = do
   --- forward every obstacles by 1
   let new_obs = map minusOne obs
   let clean_obs = removeNeg new_obs
-  Game {_Runner = rn, _Obstacles = clean_obs, _Jumping = jump, _lastObs = last, _score = score, _locked = locked, _dead = dead}
+  Game {_Runner = rn, _Obstacles = clean_obs, _Jumping = jump, _score = score, _locked = locked, _dead = dead}
   where
     minusOne (track, pos) = (track, pos - 1)
 
@@ -152,6 +153,14 @@ removeNeg (x : xs) = do
     then xs
     else x : removeNeg xs
 
+----------------------------------------------------
+--- Score
+----------------------------------------------------
+
+-- Function of adding given point of score to Game
+addScore :: Int -> Game -> Game
+addScore point (Game rn obs jump score locked dead) = Game {_Runner = rn, _Obstacles = obs, _Jumping = jump, _score = score + point, _locked = locked, _dead = dead}
+
 -- | Initialize a paused game with random food location
 initGame :: IO Game
 initGame = do
@@ -161,7 +170,6 @@ initGame = do
           { _Runner = Mid, -- current track (location) of runner
             _Obstacles = error "fill this in", -- list of obstacles
             _Jumping = False, -- is runner jumping now
-            _lastObs = error "fill this in", -- track of the last obstacle, for generating new one
             _score = 0, -- current score, method TODO
             _locked = False, -- game locked during moving/jumping
             _dead = False -- game over
@@ -176,7 +184,6 @@ test_game =
     { _Runner = Mid,
       _Obstacles = [],
       _Jumping = False,
-      _lastObs = Mid,
       _score = 0,
       _locked = False,
       _dead = False
@@ -192,12 +199,11 @@ printPos :: Pos -> IO ()
 printPos pos = putStrLn (show pos)
 
 printGame :: Game -> IO ()
-printGame (Game rn obs jump last score locked dead) = do
+printGame (Game rn obs jump score locked dead) = do
   putStrLn "----------Printing Game Status Right now----------"
   putStrLn ("Runner position is in Track " ++ show rn)
   putStrLn ("Runner Obs list is " ++ show obs)
   putStrLn ("Runner jumping status is " ++ show jump)
-  putStrLn ("Runner last Obstacles is in Track " ++ show last)
   putStrLn ("Runner score is " ++ show score)
   putStrLn ("Runner changing track status is locked " ++ show locked)
   putStrLn ("Runner is dead " ++ show dead)
