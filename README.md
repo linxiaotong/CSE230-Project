@@ -5,10 +5,10 @@
 Team members:
 
 
-Xiaotong Lin  xil162@ucsd.edu
-Kanlin Wang (kaw008@ucsd.edu)
-Dingxian Wang diw021@ucsd.edu
-Yen-Ju Tseng ytseng@ucsd.edu
+Xiaotong Lin  (xil162@ucsd.edu)  
+Kanlin Wang   (kaw008@ucsd.edu)  
+Dingxian Wang (diw021@ucsd.edu)  
+Yen-Ju Tseng  (ytseng@ucsd.edu)    
 
 # Proposal
 
