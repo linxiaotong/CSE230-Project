@@ -129,6 +129,7 @@ drawGrid g = withBorderStyle BS.unicodeBold
       | c `elem` grounds                      = Ground
       | otherwise                             = Empty
 
+
 heroCord :: Int -> Track -> V2 Int
 heroCord j t = if j > 0
   then V2 0 ((trackCord t)+1)
