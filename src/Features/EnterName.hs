@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module EnterName(
+module Features.EnterName(
     enterName,
     getNames
 ) 
