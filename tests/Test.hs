@@ -63,8 +63,9 @@ probEnd :: Game -> Score -> TestTree
 probEnd g sc =
   testGroup
     "EndCore"
-    [ scoreTest (end1, (step $ g {_Obstacles = [(Mid,0)]}), True, 1, "Up1"), 
-      scoreTest (end1, (step $ g {_Runner = Up,_Obstacles = [(Up,0)]}), True, 1, "Up1")
+    [ scoreTest (end1, (step $ g {_Obstacles = [(Mid,0)]}), True, 1, "End1"), 
+      scoreTest (end1, (step $ g {_Runner = Up,_Obstacles = [(Up,0)]}), True, 1, "End2"),
+      scoreTest (end1, (step $ g {_Runner = Down,_Obstacles = [(Down,0)]}), True, 1, "End3")
     ]
   where
     scoreTest :: (Show b, Eq b) => (a -> IO b, a, b, Int, String) -> TestTree
