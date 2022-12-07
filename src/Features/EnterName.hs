@@ -2,7 +2,8 @@
 
 module Features.EnterName(
     enterName,
-    getNames
+    getNames,
+    getNameFile
 ) 
 where
 
