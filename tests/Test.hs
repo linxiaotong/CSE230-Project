@@ -21,7 +21,7 @@ main = do
 
 probCore :: Game -> Score -> TestTree
 probCore g sc = testGroup "MoveCore" [
-  scoreTest (move1, g, 7, 1, "Up1")
+  scoreTest (move1, (moveUp g), 7, 1, "Up1")
   -- scoreTest ((\_ -> checkImage "chess1.png"    mkChess1),     (), True, 2, "chess-1"),
   -- scoreTest ((\_ -> checkImage "chess2.png"    mkChess2),     (), True, 2, "chess-2"),
   -- scoreTest ((\_ -> checkImage "triangle1.png" mkTriangle1),  (), True, 3, "triangle-1"),
@@ -32,7 +32,7 @@ probCore g sc = testGroup "MoveCore" [
     scoreTest :: (Show b, Eq b) => (a -> IO b, a, b, Int, String) -> TestTree
     scoreTest (f, x, r, n, msg) = scoreTest' sc (f, x, r, n, msg)
     move1 :: Game -> IO Int
-    move1 g = return $ trackCord(runner (moveUp g))
+    move1 g@(Game rn obs flg jump score lock dead) = return $ trackCord(rn)
 
 -- basicG = Game { _Runner = Mid, -- current track (location) of runner
 --     _Obstacles :: [], -- list of obstacles
