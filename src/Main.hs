@@ -1,7 +1,7 @@
 module Main where
 
 import Features.Board (playGame)
-import Features.Escape (Game(..))
+import Features.Escape 
 import Features.EnterName(enterName, getNames)
 
 import Control.Monad (when)
@@ -9,11 +9,12 @@ import Data.Monoid ((<>))
 import System.Exit (exitSuccess)
 import Text.Read (readMaybe)
 
+import Control.Lens hiding ((:<), (:>), (<|), (|>))
 import Options.Applicative
 import qualified System.Directory as D
 import System.FilePath ((</>))
 
-newtype Opts = Opts { score :: Bool }
+newtype Opts = Opts { sco :: Bool }
 
 opts :: Parser Opts
 opts = Opts
@@ -35,7 +36,8 @@ main = do
   when hs (getHighScore >>= printRecord >> exitSuccess) -- show high score and exit
   enterName
   g <- playGame
-  handleEndGame (_score g)
+  let scc = g ^. score
+  handleEndGame (scc)
 
 
 handleEndGame :: Int -> IO ()
