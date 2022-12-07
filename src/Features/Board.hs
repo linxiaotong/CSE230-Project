@@ -59,7 +59,7 @@ playGame = do
   chan <- newBChan 10
   forkIO $ forever $ do
     writeBChan chan Tick
-    threadDelay 100000 -- decides how fast your game moves
+    threadDelay 200000 -- decides how fast your game moves
   g <- initGame
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
@@ -120,7 +120,7 @@ drawGrid g = withBorderStyle BS.unicodeBold
   $ B.borderWithLabel (str "Cube Escape")
   $ vBox rows
   where
-    rows         = [hBox $ cellsInRow r | r <- [8..0]]
+    rows         = [hBox $ cellsInRow r | r <- [8, 7..0]]
     cellsInRow y = [drawCoord (V2 x y) | x <- [0..15]]
     drawCoord    = drawCell . cellAt
     cellAt c
@@ -131,10 +131,10 @@ drawGrid g = withBorderStyle BS.unicodeBold
 
 heroCord :: Int -> Track -> V2 Int
 heroCord j t = if j > 0
-  then V2 1 (trackCord t)
+  then V2 0 ((trackCord t)+1)
   else V2 0 (trackCord t)
 
-grounds = [V2 x y | x <- [0,3,6], y <- [0..15]]
+grounds = [V2 y x | x <- [0,3,6], y <- [0..15]]
 
 -- trackCord :: Track -> Int
 -- trackCord Up   = 7
