@@ -28,7 +28,7 @@ cubeEscapeFooter = "Controls - WS or arrow keys(up & down) to change track.\n Sp
 fullOpts :: ParserInfo Opts
 fullOpts = info (helper <*> opts) (fullDesc <> header cubeEscapeHeader <> footer cubeEscapeFooter)
 
--- Basically copied from tetris example
+
 main :: IO ()
 main = do
   (Opts hs) <- execParser fullOpts
@@ -37,7 +37,7 @@ main = do
   g <- playGame
   handleEndGame (_score g)
 
--- Copied from tetris example
+
 handleEndGame :: Int -> IO ()
 handleEndGame s = do
   mhs <- getHighScore
@@ -56,7 +56,6 @@ handleEndGame s = do
       setHighScore s
 
 -- High score stuff
--- Copied from tetris example
 getHighScore :: IO (Maybe Int)
 getHighScore = do
   lb <- getRecordFile
@@ -65,13 +64,12 @@ getHighScore = do
      then readMaybe <$> readFile lb
      else return Nothing
 
--- Copied from tetris example
 setHighScore :: Int -> IO ()
 setHighScore s = do
   lb <- getRecordFile
   writeFile lb (show s)
 
--- Copied from tetris example
+
 getRecordFile :: IO FilePath
 getRecordFile = do
   xdg <- D.getXdgDirectory D.XdgData "cubeEscape"
@@ -79,7 +77,6 @@ getRecordFile = do
   return (xdg </> "score")
 
 -- Utilities
--- Copied from tetris example
 printRecord :: Show a => Maybe a -> IO ()
 printRecord Nothing  = putStrLn "None"
 printRecord (Just s) = do 
