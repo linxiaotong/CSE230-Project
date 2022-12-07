@@ -1,8 +1,8 @@
 module Main where
 
-import Board (playGame)
-import Escape (Game(..))
-import EnterName(enterName, getNames)
+import Features.Board (playGame)
+import Features.Escape (Game(..))
+import Features.EnterName(enterName, getNames)
 
 import Control.Monad (when)
 import Data.Monoid ((<>))
