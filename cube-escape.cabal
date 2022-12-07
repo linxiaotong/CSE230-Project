@@ -33,13 +33,18 @@ library
                      , filepath
   default-language:    Haskell2010
 
-executable dino
+executable cescape
   hs-source-dirs:      src
   main-is:             Main.hs
   ghc-options:         -threaded -Wall -fno-warn-unused-do-bind -O3
   build-depends:       base >= 4.7 && < 5
                      , cube-escapee
-                     , directory
-                     , filepath
-                     , optparse-applicative
+                     , brick
+                     , containers
+                     , extra
+                     , linear
+                     , lens
+                     , random
+                     , transformers
+                     , vty
   default-language:    Haskell2010
