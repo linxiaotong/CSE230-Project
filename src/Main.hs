@@ -14,11 +14,18 @@ import Options.Applicative
 import qualified System.Directory as D
 import System.FilePath ((</>))
 
-newtype Opts = Opts { sco :: Bool }
+data Opts = Opts { sco :: Bool, 
+                      rrr ::Bool
+                    }
 
 opts :: Parser Opts
 opts = Opts
   <$> switch (long "high-score" <> short 's' <> help "Print highscore record and exit")
+  <*> switch (long "reset-record" <> short 'r' <> help "Reset the Highest Score Record")
+
+-- opts2 :: Parser Opts
+-- opts2 = Opts
+--   <$> switch (long "reset-record" <> short 'r' <> help "Reset the Highest Score Record")
 
 cubeEscapeHeader :: String
 cubeEscapeHeader = "Cube Escape - Do your Best to get higher score!"
@@ -27,13 +34,14 @@ cubeEscapeFooter :: String
 cubeEscapeFooter = "Controls - WS or arrow keys(up & down) to change track.\n Space to jump, q or esc to quit"
 
 fullOpts :: ParserInfo Opts
-fullOpts = info (helper <*> opts) (fullDesc <> header cubeEscapeHeader <> footer cubeEscapeFooter)
+fullOpts = info (helper <*> opts ) (fullDesc <> header cubeEscapeHeader <> footer cubeEscapeFooter)
 
 
 main :: IO ()
 main = do
-  (Opts hs) <- execParser fullOpts
+  (Opts hs rr) <- execParser fullOpts
   when hs (getHighScore >>= printRecord >> exitSuccess) -- show high score and exit
+  when rr (resetHighScore >> resetRecordHolder >> printMessage >> exitSuccess)
   enterName
   g <- playGame
   let scc = g ^. score
@@ -56,6 +64,7 @@ handleEndGame s = do
       let newName = if name == "" then "No name" else name
       putStrLn $ "Congrats! " ++ id newName ++ "! New Record: " ++ show s
       setHighScore s
+      setRecordHolder name
 
 -- High score stuff
 getHighScore :: IO (Maybe Int)
@@ -71,6 +80,11 @@ setHighScore s = do
   lb <- getRecordFile
   writeFile lb (show s)
 
+resetHighScore :: IO ()
+resetHighScore = do
+  lb <- getRecordFile
+  writeFile lb (show 0)
+
 
 getRecordFile :: IO FilePath
 getRecordFile = do
@@ -78,10 +92,41 @@ getRecordFile = do
   D.createDirectoryIfMissing True xdg
   return (xdg </> "score")
 
+-- Record Holder stuff
+
+getRecordHolder :: IO (Maybe String)
+getRecordHolder = do
+  lb <- getRecordHolderFile
+  exists <- D.doesFileExist lb
+  if exists
+     then readMaybe <$> readFile lb
+     else return Nothing
+
+setRecordHolder :: String -> IO ()
+setRecordHolder s = do
+  lb <- getRecordHolderFile
+  writeFile lb (show s)
+
+resetRecordHolder :: IO ()
+resetRecordHolder = do
+  lb <- getRecordHolderFile
+  writeFile lb (show "Has Been Reset")
+
+getRecordHolderFile :: IO FilePath
+getRecordHolderFile = do
+  xdg <- D.getXdgDirectory D.XdgData "cubeEscape"
+  D.createDirectoryIfMissing True xdg
+  return (xdg </> "recordHolder")
+
 -- Utilities
 printRecord :: Show a => Maybe a -> IO ()
 printRecord Nothing  = putStrLn "None"
 printRecord (Just s) = do 
-  name <- getNames
-  let newName = if name == "" then "No name" else name
-  putStrLn $ id newName ++ ": " ++ show s
+  name <- getRecordHolder
+  case name of
+    Nothing -> putStrLn $ "No name: " ++ show s
+    Just nm -> putStrLn $ id nm ++ ": " ++ show s
+  
+
+printMessage :: IO ()
+printMessage = putStrLn "Record Has Been Reset"
