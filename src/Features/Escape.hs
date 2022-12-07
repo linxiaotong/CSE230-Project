@@ -2,9 +2,9 @@
 
 module Features.Escape
   ( -- Types
-    Game,
+    Game(..),
     Pos,
-    Track,
+    Track(..),
     -- Game function
     initGame,
     -- step,

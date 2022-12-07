@@ -44,31 +44,39 @@ executable cube-escape
 test-suite test
   default-language: Haskell98
   type:             exitcode-stdio-1.0
-  hs-source-dirs:   test
+  hs-source-dirs:   tests,
+                    src
+  other-modules:       Features.Board
+                     , Features.EnterName
+                     , Features.Escape
   Default-Extensions: OverloadedStrings
   main-is:          Test.hs
-  build-depends:    base >= 4.7 && < 5,
-                    brick,
-                    containers,
-                    linear,
-                    microlens,
-                    microlens-th,
-                    random,
-                    vty,
-                    MonadRandom,
-                    cursor,
-                    cursor-brick,
-                    directory,
-                    path,
-                    path-io,
-                    pretty-show,
-                    text,
-                    filepath,
-                    directory,
+  build-depends:    base >= 4.7 && < 5
+                     , directory
+                     , filepath
+                     , optparse-applicative
+                     , brick
+                     , cursor-brick
+                     , cursor
+                     , path
+                     , path-io
+                     , pretty-show
+                     , text
+                     , vty
+                     , containers
+                     , linear
+                     , microlens
+                     , microlens-th
+                     , random
+                     , MonadRandom
+                     , transformers
+                     , QuickCheck
+                     , lens
+                     , extra,
                     QuickCheck,
                     tasty,
                     tasty-hunit,
                     tasty-quickcheck,
-                    process,
-                    cube-escape
+                    process
+                    --cube-escape
   other-modules:    Common 
