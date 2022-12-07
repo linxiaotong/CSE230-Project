@@ -33,18 +33,34 @@ executable cube-escape
                      , filepath
   default-language:    Haskell2010
 
-executable cescape
-  hs-source-dirs:      src
-  main-is:             Main.hs
-  ghc-options:         -threaded -Wall -fno-warn-unused-do-bind -O3
-  build-depends:       base >= 4.7 && < 5
-                     , cube-escape
-                     , brick
-                     , containers
-                     , extra
-                     , linear
-                     , lens
-                     , random
-                     , transformers
-                     , vty
-  default-language:    Haskell2010
+test-suite test
+  default-language: Haskell98
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  Default-Extensions: OverloadedStrings
+  main-is:          Test.hs
+  build-depends:    base >= 4.7 && < 5,
+                    brick,
+                    containers,
+                    linear,
+                    microlens,
+                    microlens-th,
+                    random,
+                    vty,
+                    MonadRandom,
+                    cursor,
+                    cursor-brick,
+                    directory,
+                    path,
+                    path-io,
+                    pretty-show,
+                    text
+                    filepath,
+                    directory,
+                    QuickCheck,
+                    tasty,
+                    tasty-hunit,
+                    tasty-quickcheck,
+                    process,
+                    cube-escape
+  other-modules:    Common 
