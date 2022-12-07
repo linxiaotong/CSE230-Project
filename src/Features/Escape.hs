@@ -90,7 +90,7 @@ step game = fromMaybe game $ do
 ----------------------------------------------------
 
 takeAction :: Game -> Game
-takeAction = (execState generateObs) . addScore . forwardObs . minJump
+takeAction = (execState generateObs) . addScore . minJump . forwardObs
 
 -- Function of adding given point of score to Game
 addScore :: Game -> Game
@@ -165,9 +165,9 @@ checkDie g@(Game rn obs flg jump score locked dead) =
     else do
       -- not jump, check closest obstacles
       let ob = nextObs g
-      case ob of
-        (rn, 0) -> True
-        (_, _) -> False
+      if fst ob == rn && snd ob == 0
+        then True
+        else False
 
 -- if not jumping check track of obstacle in index 0 is the same as runner or not
 
