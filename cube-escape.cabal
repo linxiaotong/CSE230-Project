@@ -11,26 +11,34 @@ cabal-version:       >=1.10
 
 executable cube-escape
   hs-source-dirs:      src
-  exposed-modules:     Features.Escape
-                     , Features.Board
+  other-modules:       Features.Board
                      , Features.EnterName
+                     , Features.Escape
+  main-is:             Main.hs
+  ghc-options:         -threaded -Wall -fno-warn-unused-do-bind -O3
   build-depends:       base >= 4.7 && < 5
+                     , directory
+                     , filepath
+                     , optparse-applicative
                      , brick
+                     , cursor-brick
+                     , cursor
+                     , path
+                     , path-io
+                     , pretty-show
+                     , text
+                     , vty
                      , containers
                      , linear
                      , microlens
                      , microlens-th
                      , random
-                     , vty
                      , MonadRandom
-                     , cursor
-                     , cursor-brick
-                     , directory
-                     , path
-                     , path-io
-                     , pretty-show
-                     , text
-                     , filepath
+                     , transformers
+                     , QuickCheck
+                     , lens
+                     , extra
+
   default-language:    Haskell2010
 
 test-suite test
