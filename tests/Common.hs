@@ -2,32 +2,37 @@
 
 module Common where
 
-import           Data.IORef
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           System.Exit
-import           System.Process
-import           System.IO
-import           Control.Exception
-import           Text.Printf
-import           System.FilePath
+import Control.Exception
+import Data.IORef
+import System.Exit
+import System.FilePath
+import System.IO
+import System.Process
 import qualified Test.QuickCheck as QC
+import Test.Tasty
+import Test.Tasty.HUnit
+import Text.Printf
+
 type Score = IORef (Int, Int)
 
 runTests :: [Score -> TestTree] -> IO ()
 runTests groups = do
   sc <- initScore
   -- defaultMain (tests sc groups) `catch` (\(e :: ExitCode) -> do
-  defaultMain (localOption (mkTimeout 500000) (tests sc groups)) `catch` (\(e :: ExitCode) -> do
-    (n, tot) <- readIORef sc
-    putStrLn ("OVERALL PASS = " ++ show n ++ " / "++ show tot)
-    throwIO e)
+  defaultMain (localOption (mkTimeout 500000) (tests sc groups))
+    `catch` ( \(e :: ExitCode) -> do
+                (n, tot) <- readIORef sc
+                putStrLn ("OVERALL PASS = " ++ show n ++ " / " ++ show tot)
+                throwIO e
+            )
 
 tests :: Score -> [Score -> TestTree] -> TestTree
-tests x gs = testGroup "Tests" [ g x | g <- gs ]
+tests x gs = testGroup "Tests" [g x | g <- gs]
 
 --------------------------------------------------------------------------------
+
 -- | Construct a single test case
+
 --------------------------------------------------------------------------------
 mkTest' :: (Show b, Eq b) => Score -> (a -> IO b) -> a -> b -> String -> TestTree
 --------------------------------------------------------------------------------
@@ -58,11 +63,13 @@ scoreProp :: (QC.Testable prop) => Score -> (String, prop, Int) -> TestTree
 --------------------------------------------------------------------------------
 scoreProp sc (name, prop, n) = scoreTest' sc (act, (), True, n, name)
   where
-    act _                    = QC.isSuccess <$> QC.labelledExamplesWithResult args prop
-    args                     = QC.stdArgs { QC.chatty = False, QC.maxSuccess = 100 }
+    act _ = QC.isSuccess <$> QC.labelledExamplesWithResult args prop
+    args = QC.stdArgs {QC.chatty = False, QC.maxSuccess = 100}
 
 --------------------------------------------------------------------------------
+
 -- | Binary (Executable) Tests
+
 --------------------------------------------------------------------------------
 -- data BinCmd = BinCmd
 --   { bcCmd    :: String
