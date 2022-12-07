@@ -120,7 +120,7 @@ drawGrid g = withBorderStyle BS.unicodeBold
   $ B.borderWithLabel (str "Cube Escape")
   $ vBox rows
   where
-    rows         = [hBox $ cellsInRow r | r <- [8..0]]
+    rows         = [hBox $ cellsInRow r | r <- [8, 7..0]]
     cellsInRow y = [drawCoord (V2 x y) | x <- [0..15]]
     drawCoord    = drawCell . cellAt
     cellAt c
@@ -128,6 +128,7 @@ drawGrid g = withBorderStyle BS.unicodeBold
       | c == heroCord (g ^. jumping) (g ^. runner)= Cube
       | c `elem` grounds                      = Ground
       | otherwise                             = Empty
+
 
 heroCord :: Int -> Track -> V2 Int
 heroCord j t = if j > 0
