@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Features.Escape
   ( -- Types
     Game,
@@ -12,7 +14,6 @@ module Features.Escape
     moveDown,
     runnerJump,
     -- generateObs,
-    trackObs,
     updateObs,
     forwardObs,
     removeNeg,
@@ -25,6 +26,7 @@ module Features.Escape
   )
 where
 
+import Control.Lens hiding ((:<), (:>), (<|), (|>))
 import Control.Monad (guard)
 -- import Control.Monad.Random
 import Control.Monad.Trans.Maybe (MaybeT (MaybeT))
@@ -59,6 +61,8 @@ data Track
   | Mid
   | Down
   deriving (Eq, Show)
+
+makeLenses ''Game
 
 -- Core Function
 
@@ -114,21 +118,13 @@ runnerJump (Game rn obs flg jump score locked dead)
 --- Obstacle and Random Generator
 ----------------------------------------------------
 
--- Function to generate a list of Obs with given 3 track and position 15(last cell of the board)
--- For each track if the random number is 1, then it generate a pos, otherwise not generate a list
-generateObs :: IO ()
+-- Function to generate Obstacles
+-- generateObs :: State Game ()
 generateObs = do
-  trackObs Down
-  trackObs Mid
-  trackObs Up
-
--- Function of decided whether a track is generated a obstacles
-trackObs :: Track -> IO ()
-trackObs track = do
-  let flag = 1
-  if flag == 1
-    then print (track, 15)
-    else print (track, -1)
+  -- take one out
+  (f :| fs) <- use flags
+  obs <- use obstacles
+  obstacles .= obs ++ [(Down, 15)]
 
 -- Function to add the new obstacles to Game (including Obstacles and LastObs)
 updateObs :: [Pos] -> Game -> Game
@@ -166,19 +162,19 @@ initGame :: IO Game
 initGame = do
   -- error "fill this in"
   let a = (0, 1) :: (Int, Int)
-  -- generated random list here
+  -- generated random inifite list here
   (f :| fs) <- fromList . randomRs a <$> newStdGen
   let g =
         Game
           { _Runner = Mid, -- current track (location) of runner
-            _Obstacles = error "fill this in", -- list of obstacles
+            _Obstacles = [], -- list of obstacles
             _Flags = fs,
             _Jumping = False, -- is runner jumping now
             _score = 0, -- current score, method TODO
             _locked = False, -- game locked during moving/jumping
             _dead = False -- game over
           }
-  return g
+  return $ execState generateObs g
 
 fromList :: [a] -> Stream a
 fromList = foldr (:|) (error "Streams must be infinite")
@@ -223,3 +219,8 @@ printGame (Game rn obs flg jump score locked dead) = do
   putStrLn ("Runner changing track status is locked " ++ show locked)
   putStrLn ("Runner is dead " ++ show dead)
   putStrLn "----------Finished Printing Game Status-----------"
+
+printIO :: IO ()
+printIO = do
+  g <- initGame
+  printGame g
