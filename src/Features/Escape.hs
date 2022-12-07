@@ -27,11 +27,11 @@ module Features.Escape
     step,
     runner,
     obstacles,
-    flags, 
+    flags,
     jumping,
     score,
     locked,
-    dead
+    dead,
   )
 where
 
@@ -78,8 +78,8 @@ data Track
 makeLenses ''Game
 
 trackCord :: Track -> Int
-trackCord Up   = 7
-trackCord Mid  = 4
+trackCord Up = 7
+trackCord Mid = 4
 trackCord Down = 1
 
 -- Core Function
@@ -145,6 +145,7 @@ minJump g@(Game rn obs flg jump score lock dead) = g & jumping .~ (jump - 1)
 
 -- Function to control the Runner to move up one Track, if already in Up, do nothing
 moveUp :: Game -> Game
+moveUp g@(Game rn obs flg jump score lock True) = g
 moveUp (Game rn obs flg jump score True dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = True, _dead = dead}
 moveUp (Game rn obs flg jump score False dead)
   | rn == Down = Game {_Runner = Mid, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = False, _dead = dead}
@@ -153,6 +154,7 @@ moveUp (Game rn obs flg jump score False dead)
 
 -- Function to control the Runner to move down one Track, if already in Down, do nothing
 moveDown :: Game -> Game
+moveDown g@(Game rn obs flg jump score lock True) = g
 moveDown (Game rn obs flg jump score True dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = True, _dead = dead}
 moveDown (Game rn obs flg jump score False dead)
   | rn == Down = Game {_Runner = Down, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = False, _dead = dead}
@@ -163,6 +165,7 @@ moveDown (Game rn obs flg jump score False dead)
 -- Jumping means locked the runner from moving to other track
 -- If locked, then nothing is changed
 runnerJump :: Game -> Game
+runnerJump g@(Game rn obs flg jump score lock True) = g
 runnerJump (Game rn obs flg jump score True dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = jump, _score = score, _locked = True, _dead = dead}
 runnerJump (Game rn obs flg jump score False dead) = Game {_Runner = rn, _Obstacles = obs, _Flags = flg, _Jumping = 2, _score = score, _locked = True, _dead = dead}
 
@@ -218,7 +221,7 @@ addScore (Game rn obs flg jump score locked dead) = Game {_Runner = rn, _Obstacl
 initGame :: IO Game
 initGame = do
   -- error "fill this in"
-  let a = (1, 4) :: (Int, Int)
+  let a = (1, 6) :: (Int, Int)
   -- generated random inifite list here
   fs <- fromList . randomRs a <$> newStdGen
   let g =
@@ -247,7 +250,7 @@ test_game =
       _Jumping = 0,
       _score = 0,
       _locked = False,
-      _dead = False
+      _dead = True
     }
 
 test_track :: Track
