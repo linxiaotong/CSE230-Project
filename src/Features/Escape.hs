@@ -38,6 +38,8 @@ import Test.QuickCheck
 import Text.ParserCombinators.ReadPrec ()
 import Prelude
 
+
+
 -- Core types
 data Game = Game
   { _Runner :: Track, -- current track (location) of runner
@@ -71,6 +73,19 @@ makeLenses ''Game
 ----------------------------------------------------
 
 -- function to step forward in time, need more time to research on Maybe library
+step :: Game -> Game
+step g = fromMaybe g $ do
+    guard (not (g^.dead))
+    -- unlock from last 
+    MaybeT . fmap Just (locked .= False)
+    --
+    die <|> MaybeT (Just <$> modify moveUp)
+        <|> MaybeT (Just <$> modify moveDown)
+        <|> MaybeT (Just <$> modify runnerJump)
+
+
+
+
 -- step :: Game -> Game
 -- step g = fromMaybe g $ do
 --   guard (not (g ^. dead))
