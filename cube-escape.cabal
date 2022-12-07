@@ -2,8 +2,8 @@ name:                cube-escape
 version:             0.1.0.0
 license:             MIT
 license-file:        LICENSE
-author:              Ranjit Jhala
-maintainer:          rjhala@eng.ucsd.edu
+author:              Xiaotong Lin, Kanlin Wang, Dingxian Wang, Yen-Ju Tseng 
+maintainer:          xil162@ucsd.edu, kaw008@ucsd.edu, diw021@ucsd.edu, ytseng@ucsd.edu
 category:            Game
 build-type:          Simple
 extra-source-files:  README.md
