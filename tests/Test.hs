@@ -7,6 +7,10 @@ import Features.EnterName
 import Features.Escape
 import Test.Tasty
 import Prelude hiding (maximum)
+import qualified Data.Text.IO as T
+import qualified Data.Text as TX
+import Path
+import Path.IO
 
 --import System.Exit
 
@@ -14,7 +18,7 @@ main :: IO ()
 main = do
   putStrLn "\nRunning my tests... "
   basicG <- initGame
-  runTests [probCore basicG]
+  runTests [probCore basicG, probCore2 "test"]
   putStrLn "\nDone Testing"
 
 --exitWith ExitSuccess
@@ -39,6 +43,28 @@ probCore g sc =
     move1 g@(Game rn obs flg jump score lock dead) = return $ trackCord (rn)
     jump1 :: Game -> IO Int
     jump1 g@(Game rn obs flg jump score lock dead) = return jump
+
+probCore2 :: String -> Score -> TestTree
+probCore2 str sc = testGroup "EnterName" [
+  scoreTest (prop_getNameFile_getNames, str, True, 1, "prop_getNameFile_getNames")
+  -- scoreTest ((\_ -> checkImage "chess1.png"    mkChess1),     (), True, 2, "chess-1"),
+  -- scoreTest ((\_ -> checkImage "chess2.png"    mkChess2),     (), True, 2, "chess-2"),
+  -- scoreTest ((\_ -> checkImage "triangle1.png" mkTriangle1),  (), True, 3, "triangle-1"),
+  -- scoreTest ((\_ -> checkImage "triangle2.png" mkTriangle2),  (), True, 3, "triangle-2"),
+  -- scoreTest ((\_ -> checkImage "carpet.png"    mkCarpet),     (), True, 5, "carpet")
+  ]
+  where
+
+    scoreTest :: (Show b, Eq b) => (a -> IO b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (f, x, r, n, msg)
+    prop_getNameFile_getNames :: String -> IO Bool
+    prop_getNameFile_getNames s = do
+        fp <- getNameFile
+        path <- resolveFile' fp
+        T.writeFile (fromAbsFile path) (TX.pack s)
+        name <- getNames
+        return (name == s)
+
 -- =======
 -- probCore g sc = testGroup "MoveCore" [
 --   scoreTest (move1, (moveUp g), 7, 1, "Up1")
