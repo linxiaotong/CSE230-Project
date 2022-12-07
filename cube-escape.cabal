@@ -9,7 +9,7 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
-library
+executable cube-escape
   hs-source-dirs:      src
   exposed-modules:     Features.Escape
                      , Features.Board

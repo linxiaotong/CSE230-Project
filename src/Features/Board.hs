@@ -125,9 +125,14 @@ drawGrid g = withBorderStyle BS.unicodeBold
     drawCoord    = drawCell . cellAt
     cellAt c
       | c `elem` (obsCoord $ g ^. Obstacles)  = Obs
-      | c == (V2 0 (trackCord $ g ^. runner)) = Cube
+      | c == heroCord (g ^. Jumping) (g ^. Runner)= Cube
       | c `elem` grounds                      = Ground
       | otherwise                             = Empty
+
+heroCord :: Bool -> Track -> V2 Int
+heroCord j t = if j
+  then V2 1 (trackCord t)
+  else V2 0 (trackCord t)
 
 grounds = [V2 x y | x <- [0,3,6], y <- [0..15]]
 
