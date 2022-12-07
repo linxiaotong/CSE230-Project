@@ -39,4 +39,5 @@ The character has several motions. First, the character can use the arrow keys t
 The score is initialized as 0. The score increases automatically by a certain ratio if the game is running. As the game is running, the score also increases by the action of colliding coins. If the game ends, the current score is returned. After the game is over, players can check their scores, and quit the game or start a new one. 
 
 ###### Reference
-https://github.com/samtay/snake
+https://github.com/samtay/snake  
+https://github.com/NorfairKing/writing-a-text-editor-in-haskell-with-brick
