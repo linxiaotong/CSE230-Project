@@ -3,6 +3,10 @@ module Escape
     Game,
     Pos,
     Track,
+    -- Game function
+    initGame,
+    step,
+    dead,
     -- core function
     moveUp,
     moveDown,
@@ -24,6 +28,10 @@ where
 import Control.Monad.Trans.State
 import qualified Data.Map as Map
 import Prelude
+import Text.ParserCombinators.ReadPrec ()
+import Control.Monad.Trans.Maybe (MaybeT (MaybeT))
+import Data.Maybe (fromMaybe)
+import Control.Monad (guard)
 
 -- Core types
 data Game = Game
@@ -53,9 +61,25 @@ data Track
 ----------------------------------------------------
 
 -- function to step forward in time, need more time to research on Maybe library
+step :: Game -> Game
+step s = fromMaybe g $ do
+    guard (not (g^.dead))
+    -- unlock from last 
+    MaybeT . fmap Just (locked .= False)
+    --
+    die <|> MaybeT (Just <$> modify moveUp)
+        <|> MaybeT (Just <$> modify moveDown)
+        <|> MaybeT (Just <$> modify runnerJump)
+
+
+
+
 
 -- Possibly dead if runner track is collide with any of the obstacles, need more investigation too
-
+die :: MaybeT(State Game) ()
+die = do
+  error "fill this in" --collide with any of the obstacles
+  MaybeT . fmap Just $ dead .= True
 ----------------------------------------------------
 --- Runner and Motion
 ----------------------------------------------------
@@ -113,6 +137,20 @@ removeNeg (x : xs) = do
     then xs
     else x : removeNeg xs
 
+-- | Initialize a paused game with random food location
+initGame :: IO Game
+initGame = do
+  error "fill this in"
+  let g  = Game
+        { _Runner = Mid, -- current track (location) of runner
+          _Obstacles = error "fill this in", -- list of obstacles
+          _Jumping = False, -- is runner jumping now
+          _lastObs = error "fill this in", -- track of the last obstacle, for generating new one
+          _score = 0, -- current score, method TODO
+          _locked = False, -- game locked during moving/jumping
+          _dead = False -- game over
+        }
+  return g
 -- test objects
 
 test_game :: Game
